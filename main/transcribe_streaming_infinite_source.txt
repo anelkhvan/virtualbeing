@@ -1,0 +1,2 @@
+https://cloud.google.com/speech-to-text/docs/samples
+https://github.com/googleapis/python-speech/blob/master/samples/microphone/transcribe_streaming_infinite.py

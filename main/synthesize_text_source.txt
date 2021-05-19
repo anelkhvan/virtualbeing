@@ -1,0 +1,2 @@
+https://github.com/googleapis/python-texttospeech/tree/master/samples/snippets
+https://github.com/googleapis/python-texttospeech/blob/master/samples/snippets/synthesize_text.py
