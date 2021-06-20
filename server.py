@@ -13,6 +13,14 @@ from flask import send_file
 # from render_cloud_server import process
 from versionb import process
 
+import argparse
+
+parser = argparse.ArgumentParser(description='Default')
+parser.add_argument('--talking', type=str, help='Filepath of video/image that contains faces to use', default="Wav2Lip/temp/result.mp4", required=False)
+parser.add_argument('--voices', type=str, help='Male or Female voice', default="en-US-Standard-B", required=False)
+args = parser.parse_args()
+
+
 
 # Create app
 print("Creating flask app...")
@@ -40,7 +48,7 @@ def route_test():
         text = request.args.get('text')
         logger.info("################ \n ################Text to render: {} \n #################".format(text))
 
-        video_path = process(text)
+        video_path = process(text, args.talking, args.voices)
 
         return send_file(video_path, as_attachment=True)
     

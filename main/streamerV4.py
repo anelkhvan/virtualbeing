@@ -2,15 +2,20 @@ import cv2
 import os
 import numpy as np
 from ffpyplayer.player import MediaPlayer
+import argparse
 
 import pyfakewebcam
 
+parser = argparse.ArgumentParser(description='Default')
+parser.add_argument('--silent', type=str, help='Silent video file', default="video/3.silent_me.mp4")
+args = parser.parse_args()
 
 virt_cam = 9
-fake = pyfakewebcam.FakeWebcam(f'/dev/video{virt_cam}', 854, 480) #854 640
+fake = pyfakewebcam.FakeWebcam(f'/dev/video{virt_cam}', 854, 480) #854 640 854 480
 
 talking_video_file = "player/output.mp4"
-silent_video_file = "video/3.silent_me.mp4"
+#silent_video_file = "video/3.silent_me.mp4"
+silent_video_file = args.silent
 
 
 def is_talking():

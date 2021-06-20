@@ -16,6 +16,7 @@ import contextlib
 
 parser = argparse.ArgumentParser(description='Default')
 parser.add_argument('--face', type=str, help='Filepath of video/image that contains faces to use', default="main/video/3.silent_me.mp4", required=False)
+parser.add_argument('--talking', type=str, help='Filepath of video/image that contains faces to use', default="Wav2Lip/temp/result.mp4", required=False)
 parser.add_argument('--audio', type=str, help='Filepath of video/audio file to use as raw audio source', default="Wav2Lip/temp/audio.wav", required=False)
 #parser.add_argument('--outfile', type=str, help='Video path to save result. See default for an e.g.', default="./output/output.mp4")
 parser.add_argument('--outfile', type=str, help='Video path to save result. See default for an e.g.', default="main/player/output.mp4")
@@ -23,6 +24,7 @@ parser.add_argument('--outfile', type=str, help='Video path to save result. See 
 parser.add_argument('--resize_factor', default=1, type=int, help='Reduce the resolution by this factor. Sometimes, best results are obtained at 480p or 720p')
 parser.add_argument('--crop', nargs='+', type=int, default=[0, -1, 0, -1], help='Crop video to a smaller region (top, bottom, left, right). Applied after resize_factor and rotate arg. ' 'Useful if multiple face present. -1 implies the value will be auto-inferred based on height, width')
 parser.add_argument('--rotate', default=False, action='store_true',help='Sometimes videos taken from a phone can be flipped 90deg. If true, will flip video right by 90deg.''Use if you get a flipped result, despite feeding a normal looking video')
+parser.add_argument('--voices', type=str, help='Male or Female voice', default="en-US-Standard-B", required=False)
 args = parser.parse_args()
 
 mel_step_size = 16
@@ -71,6 +73,10 @@ def load_data():
     mel = audio.melspectrogram(wav)
     print(mel.shape)
     ''' trial #1'''
+
+
+
+    '''
     afname = args.audio
     with contextlib.closing(wave.open(afname,'r')) as f:
         aframes = f.getnframes()
@@ -80,7 +86,8 @@ def load_data():
         print("Number of audio frames: ", aframes)
         print("Length: ", aduration)
 
-    vframes = get_length('Wav2Lip/temp/result.mp4')
+    #vframes = get_length('Wav2Lip/temp/result.mp4')
+    vframes = get_length(args.talking)
     print("Video length in frames: ", vframes)
 
     quotient = int( (aduration / vframes) + 0.5)
@@ -89,20 +96,26 @@ def load_data():
         print("i: ", i)
 
     if quotient > 0:
-        #command = "ffmpeg -y -hwaccel cuvid -i {} -filter_complex loop=loop={}:size={}:start=0 {}".format('temp/result.mp4', quotient+1, vframes, 'temp/result2.mp4')
-        command = "ffmpeg -y -hwaccel cuvid -stream_loop {} -i {} -c copy {}".format(quotient, 'Wav2Lip/temp/result.mp4', 'Wav2Lip/temp/result2.mp4')
+        #command = "ffmpeg -y -hwaccel cuvid -stream_loop {} -i {} -c copy {}".format(quotient, 'Wav2Lip/temp/result.mp4', 'Wav2Lip/temp/result2.mp4')
+        command = "ffmpeg -y -hwaccel cuvid -stream_loop {} -i {} -c copy {}".format(quotient, args.talking, 'Wav2Lip/temp/result2.mp4')
         subprocess.call(command, shell=True)
         command = "ffmpeg -y -hwaccel cuvid -ss {} -t {} -i {} -c:v libx264 {}".format(0, aduration, 'Wav2Lip/temp/result2.mp4', 'Wav2Lip/temp/result3.mp4')
-        #command = "ffmpeg -y -hwaccel cuvid -ss {} -i {} {}".format(aduration, 'temp/result2.mp4', 'temp/result3.mp4')
         subprocess.call(command, shell=True)
 
     else:
-        command = "ffmpeg -y -hwaccel cuvid -ss {} -t {} -i {} -c:v libx264 {}".format(0, aduration, 'Wav2Lip/temp/result.mp4', 'Wav2Lip/temp/result3.mp4')
+        #command = "ffmpeg -y -hwaccel cuvid -ss {} -t {} -i {} -c:v libx264 {}".format(0, aduration, 'Wav2Lip/temp/result.mp4', 'Wav2Lip/temp/result3.mp4')
+        command = "ffmpeg -y -hwaccel cuvid -ss {} -t {} -i {} -c:v libx264 {}".format(0, aduration, args.talking, 'Wav2Lip/temp/result3.mp4')
         subprocess.call(command, shell=True)
 
     
     #command = 'ffmpeg -y -hwaccel cuvid -i {} -i {} -strict -2 -q:v 1 {}'.format(args.audio, 'Wav2Lip/temp/result3.mp4', args.outfile)
     command = 'ffmpeg -y -hwaccel cuvid -i {} -i {} -strict -2 -q:v 1 {}'.format(args.audio, 'Wav2Lip/temp/result3.mp4', 'Wav2Lip/results/output.mp4')
+    '''
+    command = "ffmpeg -y -hwaccel cuda -stream_loop -1 -i {} -i {} -c:v copy -shortest -map 0:v:0 -map 1:a:0 {}".format(args.talking, args.audio, 'Wav2Lip/results/output.mp4')
+
+    #command = "ffmpeg -y -i {} -filter_complex movie={}:loop=0,setpts=N/FRAME_RATE/TB -shortest {}".format(args.audio, args.talking, 'Wav2Lip/results/output.mp4')
+
+
     subprocess.call(command, shell=True)
 
     ########shutil.copy2("./output/output.mp4", "/home/r0-dt/Desktop/past_vb/identity-clonning/5_pipeline/video/output.mp4")
@@ -116,8 +129,10 @@ def get_length(filename):
         stderr=subprocess.STDOUT)
     return float(result.stdout)
 
-def process(text):
-    synthesize_text(text, args.audio)
+def process(text, talking_video_file, voices):
+    args.talking = talking_video_file
+    args.voices = voices
+    synthesize_text(text, args.audio, args.voices)
     #model, full_frames, fps = load_data()
     load_data()
     return args.outfile

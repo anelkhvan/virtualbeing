@@ -30,7 +30,7 @@ credentials = service_account.Credentials.from_service_account_file("main/key.js
 
 
 # [START tts_synthesize_text]
-def synthesize_text(text, audio_path):
+def synthesize_text(text, audio_path, voices):
     """Synthesizes speech from the input string of text."""
     from google.cloud import texttospeech
 
@@ -44,7 +44,8 @@ def synthesize_text(text, audio_path):
     # https://cloud.google.com/text-to-speech/docs/voices
     voice = texttospeech.VoiceSelectionParams(
         language_code="en-US",
-        name="en-US-Standard-B",
+        #name="en-US-Standard-F", #en-US-Standard-B
+        name=voices,
         ssml_gender=texttospeech.SsmlVoiceGender.FEMALE,
     )
 
